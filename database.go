@@ -39,10 +39,6 @@ func (i *Instance) WithDatabase(ctx context.Context, fn func(pool *pgxpool.Pool)
 	// run database removal deferred, so the database also gets removed on
 	// runtime.Goexit() and t.FailNow()
 	defer func() {
-		if recoveredError := recover(); recoveredError != nil {
-			err = fmt.Errorf("panic: %v", recoveredError)
-		}
-
 		i.log.Info("dropping database", slog.String("name", dbname))
 		_, dropError := conn.Exec(ctx, "DROP DATABASE "+dbname+" WITH (FORCE)")
 		if dropError != nil {

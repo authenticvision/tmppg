@@ -2,8 +2,8 @@ package tmppg
 
 import (
 	"errors"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -42,11 +42,13 @@ func TestInstance_WithDatabase_Panic(t *testing.T) {
 	err := WithPostgresql(func(socketDir string) error {
 		pg := NewInstance("host=" + socketDir)
 		var dbname string
-		err := pg.WithDatabase(t.Context(), func(pool *pgxpool.Pool) error {
-			panic("test panic")
+		r.PanicsWithValue("test panic", func() {
+			_ = pg.WithDatabase(t.Context(), func(pool *pgxpool.Pool) error {
+				dbname = pool.Config().ConnConfig.Database
+				panic("test panic")
+			})
 		})
-		a.Error(err)
-		_, err = pgx.Connect(t.Context(), "host="+socketDir+" dbname="+dbname)
+		_, err := pgx.Connect(t.Context(), "host="+socketDir+" dbname="+dbname)
 		var pgError *pgconn.PgError
 		a.ErrorAs(err, &pgError)
 		a.Equal(ERRCODE_INVALID_CATALOG_NAME, pgError.Code)
