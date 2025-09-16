@@ -81,7 +81,7 @@ func WithPostgresql(fn func(socketDir string) error, opts ...Option) error {
 		slog.Debug("initdb failed with arguments", slog.Any("args", cmd.Args), logutil.Err(err))
 		return fmt.Errorf("initdb: %w", err)
 	}
-	pgCmd := pg.makeCmd("postgres", "-D", dir, "--listen_addresses=", "--unix_socket_directories="+dir, "--fsync=off", "--synchronous_commit=off", "--full_page_writes=off")
+	pgCmd := pg.makeCmd("postgres", "-D", dir, "--listen_addresses=", "--unix_socket_directories="+dir, "--fsync=off", "--synchronous_commit=off", "--full_page_writes=off", "--log_statement=all")
 	if err := pgCmd.Start(); err != nil {
 		slog.Debug("postgres failed with arguments", slog.Any("args", pgCmd.Args), logutil.Err(err))
 		return fmt.Errorf("start postgres: %w", err)
