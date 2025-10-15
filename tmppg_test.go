@@ -8,8 +8,11 @@ import (
 )
 
 func TestRunWithPostgresql(t *testing.T) {
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug})))
+	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	r := require.New(t)
-	err := RunWithPostgresql([]string{"psql", "-d", "postgres", "-c", "SELECT 1"})
+	err := RunWithPostgresql(
+		[]string{"psql", "-d", "postgres", "-c", "SELECT 1"},
+		WithLogOutput(log, slog.LevelInfo),
+	)
 	r.NoError(err)
 }
