@@ -138,6 +138,7 @@ func WithPostgresql(fn func(socketDir string) error, opts ...Option) error {
 func RunWithPostgresql(args []string, opts ...Option) error {
 	return WithPostgresql(func(socketDir string) error {
 		wrapped := exec.Command(args[0], args[1:]...)
+		wrapped.Stdin = os.Stdin
 		wrapped.Stdout = os.Stdout
 		wrapped.Stderr = os.Stderr
 		wrapped.Env = append(os.Environ(), "PGHOST="+socketDir)
