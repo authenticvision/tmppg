@@ -2,19 +2,21 @@ package tmppg
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"os/exec"
 )
 
-type postgres struct {
+type Postgres struct {
 	stdout, stderr io.Writer
+	noSync         bool
 }
 
-type Option func(pg *postgres)
+type Option func(pg *Postgres)
 
-func newPostgres(opts ...Option) *postgres {
-	pg := &postgres{}
+func NewPostgres(opts ...Option) *Postgres {
+	pg := &Postgres{}
 	for _, opt := range opts {
 		opt(pg)
 	}
@@ -32,22 +34,63 @@ func (s slogOut) Write(p []byte) (n int, err error) {
 }
 
 func WithLogOutput(logger *slog.Logger, level slog.Level) Option {
-	return func(pg *postgres) {
+	return func(pg *Postgres) {
 		pg.stdout = slogOut{logger.With(slog.String("output", "stdout")), level}
 		pg.stderr = slogOut{logger.With(slog.String("output", "stderr")), level}
 	}
 }
 
 func WithOutput(stdout, stderr io.Writer) Option {
-	return func(pg *postgres) {
+	return func(pg *Postgres) {
 		pg.stdout = stdout
 		pg.stderr = stderr
 	}
 }
 
-func (pg *postgres) makeCmd(args ...string) *exec.Cmd {
+// WithoutSync allows disabling syncing if data integrity isn't important
+func WithoutSync() Option {
+	return func(pg *Postgres) {
+		pg.noSync = true
+	}
+}
+
+func (pg *Postgres) makeCmd(args ...string) *exec.Cmd {
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = pg.stdout
 	cmd.Stderr = pg.stderr
 	return cmd
+}
+
+func (pg *Postgres) initDB(dir string) error {
+	args := []string{"initdb", "-D", dir, "--no-instructions"}
+	if pg.noSync {
+		args = append(args, "--no-sync")
+	}
+	cmd := pg.makeCmd(args...)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("exec: %w", err)
+	}
+	return nil
+}
+
+func (pg *Postgres) start(dir string) (*exec.Cmd, error) {
+	args := []string{
+		"postgres", "-D", dir,
+		"--listen_addresses=",
+		"--unix_socket_directories=" + dir,
+		"--log_statement=all",
+	}
+	if pg.noSync {
+		args = append(
+			args,
+			"--fsync=off",
+			"--synchronous_commit=off",
+			"--full_page_writes=off",
+		)
+	}
+	pgCmd := pg.makeCmd(args...)
+	if err := pgCmd.Start(); err != nil {
+		return nil, fmt.Errorf("start postgres with args %v: %w", pgCmd.Args, err)
+	}
+	return pgCmd, nil
 }
