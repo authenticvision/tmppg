@@ -138,7 +138,7 @@ func (c *Cluster) Stop() error {
 		return fmt.Errorf("cluster is not running")
 	}
 
-	err := c.cmd.Process.Signal(syscall.SIGTERM)
+	err := c.cmd.Process.Signal(syscall.SIGINT)
 	if err != nil {
 		return fmt.Errorf("terminate cluster: %w", err)
 	}
