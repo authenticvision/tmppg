@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/authenticvision/tmppg/util/logutil"
 	"io"
 	"log/slog"
 	"os"
 	"os/exec"
 	"syscall"
 	"time"
+
+	"github.com/authenticvision/tmppg/util/logutil"
 )
 
 type postgres struct {

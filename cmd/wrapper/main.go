@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/authenticvision/tmppg"
-	"github.com/authenticvision/tmppg/util/logutil"
 	"log/slog"
 	"os"
+
+	"github.com/authenticvision/tmppg"
+	"github.com/authenticvision/tmppg/util/logutil"
 )
 
 func main() {
