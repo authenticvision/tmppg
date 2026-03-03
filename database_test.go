@@ -2,12 +2,13 @@ package tmppg
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 const ERRCODE_INVALID_CATALOG_NAME = "3D000"

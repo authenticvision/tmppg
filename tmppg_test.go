@@ -1,10 +1,11 @@
 package tmppg
 
 import (
-	"github.com/stretchr/testify/require"
 	"log/slog"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestRunWithPostgresql(t *testing.T) {
