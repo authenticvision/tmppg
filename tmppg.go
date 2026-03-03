@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/authenticvision/tmppg/util/logutil"
+	"github.com/authenticvision/tmppg/internal/util/logutil"
 )
 
 // pg_isready exit codes

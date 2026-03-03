@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/authenticvision/tmppg"
-	"github.com/authenticvision/tmppg/util/logutil"
+	"github.com/authenticvision/tmppg/internal/util/logutil"
 )
 
 func main() {
