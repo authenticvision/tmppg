@@ -11,12 +11,15 @@ import (
 type Postgres struct {
 	stdout, stderr io.Writer
 	noSync         bool
+	logStatement   string
 }
 
 type Option func(pg *Postgres)
 
 func NewPostgres(opts ...Option) *Postgres {
-	pg := &Postgres{}
+	pg := &Postgres{
+		logStatement: "none",
+	}
 	for _, opt := range opts {
 		opt(pg)
 	}
@@ -54,6 +57,14 @@ func WithoutSync() Option {
 	}
 }
 
+// WithLogStatement configures postgres' log_statement setting.
+// Possible values are none, ddl, mod and all. Defaults to none.
+func WithLogStatement(setting string) Option {
+	return func(pg *Postgres) {
+		pg.logStatement = setting
+	}
+}
+
 func (pg *Postgres) makeCmd(args ...string) *exec.Cmd {
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = pg.stdout
@@ -78,7 +89,8 @@ func (pg *Postgres) start(dir string) (*exec.Cmd, error) {
 		"postgres", "-D", dir,
 		"--listen_addresses=",
 		"--unix_socket_directories=" + dir,
-		"--log_statement=all",
+		"--log_line_prefix=[%p] ",
+		"--log_statement=" + pg.logStatement,
 	}
 	if pg.noSync {
 		args = append(
