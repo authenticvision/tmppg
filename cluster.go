@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/authenticvision/tmppg/internal/errutil"
-	"github.com/authenticvision/tmppg/util/logutil"
+	"github.com/authenticvision/tmppg/internal/logutil"
 )
 
 type Cluster struct {
