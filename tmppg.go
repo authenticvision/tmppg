@@ -46,7 +46,7 @@ func WithPostgresqlDir(dir string, fn func(socketDir string) error, opts ...Opti
 		}
 	}()
 
-	return fn(dir)
+	return fn(c.dir)
 }
 
 // RunWithPostgresql runs the given command with a temporary PostgreSQL instance available.
