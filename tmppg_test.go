@@ -1,19 +1,22 @@
 package tmppg
 
 import (
+	"bytes"
 	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestRunWithPostgresql(t *testing.T) {
-	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	logOutput := &bytes.Buffer{}
+	log := slog.New(slog.NewTextHandler(logOutput, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	r := require.New(t)
 	err := RunWithPostgresql(
-		[]string{"psql", "-c", "SELECT 1"},
+		[]string{"psql", "-Atc", "SELECT 'ok'"},
 		WithLogOutput(log, slog.LevelInfo),
+		WithLogStatement("all"),
 	)
 	r.NoError(err)
+	r.Regexp(`level=INFO .* statement: SELECT 'ok'`, logOutput.String())
 }
