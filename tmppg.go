@@ -70,7 +70,7 @@ func runCmd(args []string) func(socketDir string) error {
 		wrapped.Stdin = os.Stdin
 		wrapped.Stdout = os.Stdout
 		wrapped.Stderr = os.Stderr
-		wrapped.Env = append(os.Environ(), "PGHOST="+socketDir)
+		wrapped.Env = append(os.Environ(), "PGHOST="+socketDir, "PGDATABASE=postgres")
 		if err := wrapped.Run(); err != nil {
 			return fmt.Errorf("%v: %v", wrapped.Args, err)
 		}
