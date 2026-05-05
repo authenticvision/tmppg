@@ -10,7 +10,7 @@ import (
 )
 
 // WithPostgresql runs fn after spawning a temporary Postgresql instance
-func WithPostgresql(fn func(socketDir string) error, opts ...Option) error {
+func WithPostgresql(fn func(socketDir string) error, opts ...PostgresOption) error {
 	dir, err := os.MkdirTemp("", "tmppg")
 	if err != nil {
 		return fmt.Errorf("setup temporary directory: %w", err)
@@ -27,7 +27,7 @@ func WithPostgresql(fn func(socketDir string) error, opts ...Option) error {
 // WithPostgresqlDir runs fn after spawning a Postgresql instance using dir as
 // its data and socket directory. The cluster will be created in dir if it
 // doesn't exist or is empty
-func WithPostgresqlDir(dir string, fn func(socketDir string) error, opts ...Option) error {
+func WithPostgresqlDir(dir string, fn func(socketDir string) error, opts ...PostgresOption) error {
 	pg := NewPostgres(opts...)
 	c, err := OpenOrCreateCluster(pg, dir)
 	if err != nil {
@@ -52,7 +52,7 @@ func WithPostgresqlDir(dir string, fn func(socketDir string) error, opts ...Opti
 // RunWithPostgresql runs the given command with a temporary PostgreSQL instance available.
 // Connection information is available via the standard PG* environment variables.
 // See https://www.postgresql.org/docs/current/libpq-envars.html
-func RunWithPostgresql(args []string, opts ...Option) error {
+func RunWithPostgresql(args []string, opts ...PostgresOption) error {
 	return WithPostgresql(runCmd(args), opts...)
 }
 
@@ -60,7 +60,7 @@ func RunWithPostgresql(args []string, opts ...Option) error {
 // Data is persisted in the given directory. A cluster is initialized if it doesn't exist.
 // Connection information is available via the standard PG* environment variables.
 // See https://www.postgresql.org/docs/current/libpq-envars.html
-func RunWithPostgresqlDir(dir string, args []string, opts ...Option) error {
+func RunWithPostgresqlDir(dir string, args []string, opts ...PostgresOption) error {
 	return WithPostgresqlDir(dir, runCmd(args), opts...)
 }
 

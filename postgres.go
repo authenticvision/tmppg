@@ -14,9 +14,9 @@ type Postgres struct {
 	logStatement   string
 }
 
-type Option func(pg *Postgres)
+type PostgresOption func(pg *Postgres)
 
-func NewPostgres(opts ...Option) *Postgres {
+func NewPostgres(opts ...PostgresOption) *Postgres {
 	pg := &Postgres{
 		logStatement: "none",
 	}
@@ -36,14 +36,14 @@ func (s slogOut) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func WithLogOutput(logger *slog.Logger, level slog.Level) Option {
+func WithLogOutput(logger *slog.Logger, level slog.Level) PostgresOption {
 	return func(pg *Postgres) {
 		pg.stdout = slogOut{logger.With(slog.String("output", "stdout")), level}
 		pg.stderr = slogOut{logger.With(slog.String("output", "stderr")), level}
 	}
 }
 
-func WithOutput(stdout, stderr io.Writer) Option {
+func WithOutput(stdout, stderr io.Writer) PostgresOption {
 	return func(pg *Postgres) {
 		pg.stdout = stdout
 		pg.stderr = stderr
@@ -51,7 +51,7 @@ func WithOutput(stdout, stderr io.Writer) Option {
 }
 
 // WithoutSync allows disabling syncing if data integrity isn't important
-func WithoutSync() Option {
+func WithoutSync() PostgresOption {
 	return func(pg *Postgres) {
 		pg.noSync = true
 	}
@@ -59,7 +59,7 @@ func WithoutSync() Option {
 
 // WithLogStatement configures postgres' log_statement setting.
 // Possible values are none, ddl, mod and all. Defaults to none.
-func WithLogStatement(setting string) Option {
+func WithLogStatement(setting string) PostgresOption {
 	return func(pg *Postgres) {
 		pg.logStatement = setting
 	}

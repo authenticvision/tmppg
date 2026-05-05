@@ -22,7 +22,9 @@ func NewInstance(connString string) *Instance {
 	}
 }
 
-func (i *Instance) WithDatabase(ctx context.Context, fn func(pool *pgxpool.Pool) error) (err error) {
+type DatabaseOption func(pg *pgxpool.Config) error
+
+func (i *Instance) WithDatabase(ctx context.Context, fn func(pool *pgxpool.Pool) error, opts ...DatabaseOption) (err error) {
 	var conn *pgx.Conn
 	conn, err = pgx.Connect(ctx, i.connString+" dbname=postgres")
 	if err != nil {
@@ -51,7 +53,17 @@ func (i *Instance) WithDatabase(ctx context.Context, fn func(pool *pgxpool.Pool)
 		}
 	}()
 
-	pool, err := pgxpool.New(ctx, i.connString+" dbname="+dbname)
+	dsn := i.connString + " dbname=" + dbname
+	cfg, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		return fmt.Errorf("parse DSN %q: %w", dsn, err)
+	}
+	for i, opt := range opts {
+		if err := opt(cfg); err != nil {
+			return fmt.Errorf("appy option %d: %w", i, err)
+		}
+	}
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return fmt.Errorf("connect to database %q: %w", dbname, err)
 	}
@@ -64,7 +76,7 @@ func (i *Instance) WithDatabase(ctx context.Context, fn func(pool *pgxpool.Pool)
 	return nil
 }
 
-func (i *Instance) WithDatabaseSchema(ctx context.Context, schemaSQL string, fn func(pool *pgxpool.Pool) error) error {
+func (i *Instance) WithDatabaseSchema(ctx context.Context, schemaSQL string, fn func(pool *pgxpool.Pool) error, opts ...DatabaseOption) error {
 	return i.WithDatabase(ctx, func(pool *pgxpool.Pool) error {
 		// run DDL on its own connection in case it does any weird stuff like `SET search_path`
 		// closing the connection afterwards ensures that `SET`s are discarded
@@ -80,5 +92,5 @@ func (i *Instance) WithDatabaseSchema(ctx context.Context, schemaSQL string, fn 
 			return fmt.Errorf("create schema: %w", err)
 		}
 		return fn(pool)
-	})
+	}, opts...)
 }
