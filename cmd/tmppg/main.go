@@ -12,7 +12,7 @@ func main() {
 	if len(os.Args) < 3 {
 		usage()
 	}
-	opts := []tmppg.Option{tmppg.WithOutput(os.Stdout, os.Stderr)}
+	opts := []tmppg.PostgresOption{tmppg.WithOutput(os.Stdout, os.Stderr)}
 	if os.Args[1] == "--" {
 		// tmppg -- cmd...
 		args := os.Args[2:]

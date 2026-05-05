@@ -1,6 +1,7 @@
 package tmppg
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -103,4 +104,27 @@ func TestInstance_WithDatabaseSchema(t *testing.T) {
 		return err
 	})
 	r.NoError(err)
+}
+
+func TestInstance_WithDatabase_Options(t *testing.T) {
+	t.Parallel()
+	r := require.New(t)
+	called := false
+	opt := func(cfg *pgxpool.Config) error {
+		cfg.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+			called = true
+			return nil
+		}
+		return nil
+	}
+	err := WithPostgresql(func(socketDir string) error {
+		pg := NewInstance("host=" + socketDir)
+		return pg.WithDatabaseSchema(t.Context(), `SELECT 1`, func(pool *pgxpool.Pool) error {
+			return pool.AcquireFunc(t.Context(), func(conn *pgxpool.Conn) error {
+				return conn.Ping(t.Context())
+			})
+		}, opt)
+	})
+	r.NoError(err)
+	r.True(called, "AfterConnect called")
 }
